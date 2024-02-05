@@ -1,6 +1,8 @@
+import { createServer } from 'http';
 import { envs } from './config/envs';
-import { AppRoutes } from './presentation/routes';
 import { Server } from './presentation/server';
+import { WssService } from './presentation/services/wss.service';
+import { AppRoutes } from './presentation/routes';
 
 
 (async()=> {
@@ -12,8 +14,15 @@ function main() {
 
   const server = new Server({
     port: envs.PORT,
-    routes: AppRoutes.routes,
   });
 
-  server.start();
+  const hhtpServer = createServer( server.app )
+  WssService.initWss({ server: hhtpServer })
+
+  server.setRoutes( AppRoutes.routes)
+  
+  hhtpServer.listen( envs.PORT, () => {
+
+    console.log(`Server running on port: ${envs.PORT}`)
+  })
 }
